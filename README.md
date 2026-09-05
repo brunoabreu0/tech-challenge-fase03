@@ -81,7 +81,7 @@ Um hospital de referência recebe diariamente centenas de laudos médicos em tex
 Para este cenário hospitalar, foram avaliadas três opções de plataforma de nuvem:
 
 #### ✅ AWS (Escolhida)
-**Justificativa principal:** Consistência com a infraestrutura das fases anteriores (Fase 1 e Fase 2), menor curva de operação, e experiência acumulada pela equipa.
+**Justificativa principal:** Consistência com a infraestrutura das fases anteriores (Fase 1 e Fase 2), menor curva de operação, e experiência acumulada pela equipe.
 
 | Componente | Serviço AWS | Papel |
 |---|---|---|
@@ -97,7 +97,7 @@ Para este cenário hospitalar, foram avaliadas três opções de plataforma de n
 **Por que não batch?** O volume de laudos é contínuo e imprevisível. Uma API REST em tempo real é mais adequada do que processamento em lote para triagem de urgência.
 
 #### Azure (Descartada)
-- Azure Container Apps e Azure ML são excelentes, mas a equipa não tem experiência prévia acumulada
+- Azure Container Apps e Azure ML são excelentes, mas a equipe não tem experiência prévia acumulada
 - Custo de aprendizado não justificado para projeto acadêmico com prazo definido
 
 #### GCP (Descartada)
