@@ -195,7 +195,7 @@ O loader segue uma estratégia em **3 camadas**, na ordem:
 | Prioridade | Origem | Condição |
 |---|---|---|
 | 1 | **Disco** | `data/raw/medical_abstracts.csv` presente |
-| 2 | **Download Kaggle** (automático) | Credenciais configuradas + pacote `kaggle` instalado |
+| 2 | **Download Kaggle** (automático) | `KAGGLE_API_TOKEN` configurado + pacote `kaggle` instalado |
 | 3 | **Dados Sintéticos** (fallback) | Sempre disponível, sem configuração |
 
 ### 6.1. Dataset Real — Medical Abstracts TC Corpus (recomendado)
@@ -212,18 +212,21 @@ data/raw/medical_abstracts.csv
 # 1. Instalar o extra kaggle
 poetry install --with kaggle
 
-# 2. Configurar credenciais (obtenha em kaggle.com/settings > API > Create New Token)
-echo "KAGGLE_USERNAME=seu_usuario" >> .env
-echo "KAGGLE_KEY=sua_chave"      >> .env
+# 2. Configurar credencial (obtenha em kaggle.com/settings > API > Create New Token)
+#    Adicione ao .env o token no formato KGAT_***:
+echo "KAGGLE_API_TOKEN=KGAT_***" >> .env
 
-# 3. Baixar (ou simplesmente rodar train.py — o download acontece automaticamente)
+# 3. Baixar (ou simplesmente rodar make train — o download acontece automaticamente)
 make download-data
 ```
 
-O sistema detecta automaticamente as credenciais (`KAGGLE_USERNAME` + `KAGGLE_KEY` no `.env`, ou `~/.kaggle/kaggle.json`) e faz o download + extração + renomeação do arquivo sem intervenção manual.
+O sistema detecta `KAGGLE_API_TOKEN` automaticamente (variável de ambiente ou `.env`) e grava `~/.kaggle/kaggle.json` com o formato correto para o Kaggle SDK v1.6+. O download, extração e renomeação do arquivo acontecem sem intervenção manual.
+
+> **Alternativa legada:** `KAGGLE_USERNAME` + `KAGGLE_KEY` também são suportados para compatibilidade com tokens antigos.
 
 ### 6.2. Dados Sintéticos (fallback automático)
-Se o dataset real não estiver disponível e as credenciais Kaggle não estiverem configuradas, o sistema gera automaticamente **3000 amostras sintéticas** balanceadas (1000 por classe). A API inicia normalmente sem nenhuma configuração extra.
+Se o dataset real não estiver disponível e `KAGGLE_API_TOKEN` não estiver configurado, o sistema gera automaticamente **3000 amostras sintéticas** balanceadas (1000 por classe). A API inicia normalmente sem nenhuma configuração extra.
+
 
 ---
 
