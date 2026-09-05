@@ -23,9 +23,9 @@
    * **Swagger UI interativo:** [https://api.triage.cloud-ip.cc/docs](https://api.triage.cloud-ip.cc/docs)
    * **Healthcheck da API:** [https://api.triage.cloud-ip.cc/health](https://api.triage.cloud-ip.cc/health)
    * **Métricas Prometheus:** [https://api.triage.cloud-ip.cc/metrics](https://api.triage.cloud-ip.cc/metrics)
-   * **Airflow Webserver (Orquestração):** [https://airflow.triage.cloud-ip.cc](https://airflow.triage.cloud-ip.cc)
+   * **Airflow Webserver (Orquestração):** [https://airflow.triage.cloud-ip.cc](https://airflow.triage.cloud-ip.cc) *(acesso público direto como Viewer)*
    * **Prometheus Server:** [https://prometheus.triage.cloud-ip.cc](https://prometheus.triage.cloud-ip.cc)
-   * **Grafana Dashboards:** [https://grafana.triage.cloud-ip.cc](https://grafana.triage.cloud-ip.cc) *(admin / admin)*
+   * **Grafana Dashboards:** [https://grafana.triage.cloud-ip.cc](https://grafana.triage.cloud-ip.cc) *(acesso público direto como Viewer)*
 
 3. **Apresentação do Projeto (Vídeo STAR):**
    * **Link do Vídeo (YouTube):** *(adicionar após a gravação)*

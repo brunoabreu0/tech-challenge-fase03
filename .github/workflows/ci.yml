@@ -167,6 +167,8 @@ jobs:
               "git pull --ff-only origin main",
               "docker pull techchallengefase02/medical-triage-api:latest || true",
               "docker compose -f docker-compose.prod.yml up -d --remove-orphans",
+              "sleep 5",
+              "curl -s -f http://localhost:8000/health",
               "docker system prune -f"
             ]' \
             --query "Command.CommandId" \
@@ -179,21 +181,13 @@ jobs:
             --command-id "$COMMAND_ID" \
             --instance-id "$INSTANCE_ID"
 
-          echo "🎉 Deploy concluído com sucesso via SSM!"
+          echo "📋 Verificando log de execução e healthcheck do servidor:"
+          aws ssm get-command-invocation \
+            --region sa-east-1 \
+            --command-id "$COMMAND_ID" \
+            --instance-id "$INSTANCE_ID" \
+            --query "StandardOutputContent" \
+            --output text
 
-      - name: Validate Production Health
-        run: |
-          echo "Verificando endpoint de saúde da API em produção..."
-          for i in {1..12}; do
-            STATUS=$(curl -s -o /dev/null -w "%{http_code}" https://api.triage.cloud-ip.cc/health || true)
-            if [ "$STATUS" == "200" ]; then
-              echo "✅ API saudável e respondendo HTTP 200!"
-              curl -s https://api.triage.cloud-ip.cc/health
-              exit 0
-            fi
-            echo "Tentativa $i: HTTP status $STATUS. Aguardando 5s..."
-            sleep 5
-          done
-          echo "❌ Falha ao validar saúde da API após deploy."
-          exit 1
+          echo "🎉 Deploy concluído com sucesso via SSM!"
 

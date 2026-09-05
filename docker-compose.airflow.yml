@@ -43,7 +43,7 @@ services:
       - airflow-db-data:/var/lib/postgresql/data
 
   # ---------------------------------------------------------------------------
-  # Airflow Init — cria as tabelas e o usuário admin
+  # Airflow Init — inicializa as tabelas do banco de dados
   # ---------------------------------------------------------------------------
   airflow-init:
     <<: *airflow-common
@@ -52,14 +52,7 @@ services:
       - -c
       - |
         pip install scikit-learn pandas numpy joblib skl2onnx onnxruntime pydantic pydantic-settings python-dotenv &&
-        airflow db migrate &&
-        airflow users create \
-          --username admin \
-          --firstname Admin \
-          --lastname User \
-          --role Admin \
-          --email admin@example.com \
-          --password admin
+        airflow db migrate
     restart: "no"
 
   # ---------------------------------------------------------------------------

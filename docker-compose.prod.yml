@@ -87,13 +87,12 @@ services:
       - /opt/triage/repo/monitoring/grafana/dashboards:/var/lib/grafana/dashboards:ro
       - grafana-data:/var/lib/grafana
     environment:
-      GF_SECURITY_ADMIN_USER: admin
-      GF_SECURITY_ADMIN_PASSWORD: admin
       GF_USERS_ALLOW_SIGN_UP: "false"
       GF_AUTH_ANONYMOUS_ENABLED: "true"
       GF_AUTH_ANONYMOUS_ORG_ROLE: "Viewer"
       GF_AUTH_ANONYMOUS_ORG_NAME: "Main Org."
-      GF_AUTH_DISABLE_LOGIN_FORM: "false"
+      GF_AUTH_DISABLE_LOGIN_FORM: "true"
+      GF_AUTH_DISABLE_SIGNOUT_MENU: "true"
       GF_SERVER_DOMAIN: grafana.triage.cloud-ip.cc
       GF_SERVER_ROOT_URL: "https://grafana.triage.cloud-ip.cc"
       GF_LOG_LEVEL: warn
@@ -120,7 +119,7 @@ services:
     restart: unless-stopped
 
   # ---------------------------------------------------------------------------
-  # Airflow Init — executa uma vez para criar tabelas e usuário admin
+  # Airflow Init — executa migrações do banco de dados
   # ---------------------------------------------------------------------------
   airflow-init:
     <<: *airflow-common
@@ -132,9 +131,7 @@ services:
         pip install --quiet scikit-learn pandas numpy joblib skl2onnx onnxruntime \
           pydantic pydantic-settings python-dotenv &&
         airflow db migrate &&
-        airflow users create \
-          --username admin --firstname Admin --lastname User \
-          --role Admin --email admin@example.com --password admin
+        airflow users delete -u admin || true
     restart: "no"
 
   # ---------------------------------------------------------------------------

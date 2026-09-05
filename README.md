@@ -13,9 +13,9 @@ O objetivo é construir um sistema de triagem automática de laudos médicos com
 * **Repositório GitHub**: [brunoabreu0/tech-challenge-fase03](https://github.com/brunoabreu0/tech-challenge-fase03)
 * **API em Produção (AWS CloudFront + HTTPS)**: [https://api.triage.cloud-ip.cc](https://api.triage.cloud-ip.cc)
 * **Swagger UI (Docs)**: [https://api.triage.cloud-ip.cc/docs](https://api.triage.cloud-ip.cc/docs)
-* **Airflow Webserver (AWS)**: [https://airflow.triage.cloud-ip.cc](https://airflow.triage.cloud-ip.cc)
+* **Airflow Webserver (AWS)**: [https://airflow.triage.cloud-ip.cc](https://airflow.triage.cloud-ip.cc) *(acesso direto público somente-leitura)*
 * **Prometheus (AWS)**: [https://prometheus.triage.cloud-ip.cc](https://prometheus.triage.cloud-ip.cc)
-* **Grafana (AWS - admin/admin)**: [https://grafana.triage.cloud-ip.cc](https://grafana.triage.cloud-ip.cc)
+* **Grafana (AWS)**: [https://grafana.triage.cloud-ip.cc](https://grafana.triage.cloud-ip.cc) *(acesso direto público somente-leitura)*
 * **Vídeo de Apresentação (STAR)**: *(link a adicionar após a gravação)*
 
 ---
@@ -50,7 +50,7 @@ Serviços disponíveis após o `docker compose up`:
 | API de Triagem (Swagger UI) | http://localhost:8000/docs |
 | Métricas Prometheus | http://localhost:8000/metrics |
 | Prometheus | http://localhost:9090 |
-| Grafana (admin/admin) | http://localhost:3000 |
+| Grafana (Modo Viewer) | http://localhost:3000 |
 
 ---
 
@@ -337,7 +337,7 @@ docker compose down
 ```
 
 ### Dashboard Grafana
-Acesse http://localhost:3000 (credenciais: admin/admin).
+Acesse http://localhost:3000 (acesso direto somente leitura sem necessidade de credenciais).
 
 O dashboard **Medical Triage API** é provisionado automaticamente com 3 painéis:
 1. **Total de Requisições** — counter por endpoint e status HTTP
@@ -358,7 +358,7 @@ ingest → preprocess → train → save_model
 # Subir Airflow localmente
 docker compose -f docker-compose.airflow.yml up -d
 
-# Acesse: http://localhost:8080 (admin/admin)
+# Acesse: http://localhost:8080 (acesso direto como Viewer)
 ```
 
 ---
