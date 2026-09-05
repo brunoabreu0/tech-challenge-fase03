@@ -1,5 +1,6 @@
 """Dataset loading and generation utilities."""
 
+import json
 import logging
 import os
 import random
@@ -119,15 +120,68 @@ def generate_synthetic_dataset(
     )
     return df
 
+def _resolve_kaggle_credentials() -> bool:
+    """Resolve Kaggle credentials from available sources.
+
+    Checks three sources in priority order:
+
+    1. ``KAGGLE_API_TOKEN`` env var \u2014 new-style Bearer token (``KGAT_***``).
+       Writes ``{"token": "<value>"}`` to ``~/.kaggle/kaggle.json`` so the
+       SDK (v1.6+) picks it up automatically.
+    2. ``KAGGLE_USERNAME`` + ``KAGGLE_KEY`` env vars \u2014 legacy username/key pair.
+    3. ``~/.kaggle/kaggle.json`` file already present on disk.
+
+    Returns:
+        ``True`` if at least one valid credential source was found.
+    """
+    kaggle_json = Path.home() / ".kaggle" / "kaggle.json"
+
+    # 1. KAGGLE_API_TOKEN \u2014 new Kaggle Bearer token (KGAT_***)
+    api_token = os.environ.get("KAGGLE_API_TOKEN", "").strip()
+    if api_token:
+        try:
+            kaggle_json.parent.mkdir(parents=True, exist_ok=True)
+            kaggle_json.write_text(json.dumps({"token": api_token}))
+            kaggle_json.chmod(0o600)
+            logger.info(
+                "Kaggle credentials loaded from KAGGLE_API_TOKEN (Bearer token)."
+            )
+            return True
+        except OSError as exc:
+            logger.warning("Failed to write Kaggle credentials file: %s", exc)
+
+    # 2. Legacy KAGGLE_USERNAME + KAGGLE_KEY env vars
+    username = os.environ.get("KAGGLE_USERNAME")
+    key = os.environ.get("KAGGLE_KEY")
+    if username and key:
+        logger.info("Kaggle credentials loaded from KAGGLE_USERNAME + KAGGLE_KEY.")
+        return True
+
+    # 3. Existing kaggle.json on disk
+    if kaggle_json.exists():
+        logger.info("Kaggle credentials loaded from %s.", kaggle_json)
+        return True
+
+    logger.info(
+        "No Kaggle credentials found. Provide one of:\n"
+        "  a) KAGGLE_API_TOKEN=KGAT_*** env var (from kaggle.com/settings > API),\n"
+        "  b) KAGGLE_USERNAME + KAGGLE_KEY env vars,\n"
+        "  c) ~/.kaggle/kaggle.json file."
+    )
+    return False
+
 
 def download_kaggle_dataset(data_dir: Path) -> bool:
     """Attempt to download the Medical Abstracts TC Corpus from Kaggle.
 
-    Requires either:
-    - Environment variables ``KAGGLE_USERNAME`` and ``KAGGLE_KEY``, or
-    - A valid ``~/.kaggle/kaggle.json`` credentials file.
+    Credentials are resolved automatically from (in order):
 
-    The ``kaggle`` Python package must be installed (optional dependency).
+    - ``KAGGLE_API_TOKEN`` env var \u2014 new-style Bearer token (``KGAT_***``).
+    - ``KAGGLE_USERNAME`` + ``KAGGLE_KEY`` env vars \u2014 legacy pair.
+    - ``~/.kaggle/kaggle.json`` file already present on disk.
+
+    The ``kaggle`` Python package must be installed (optional dependency:
+    ``poetry install --with kaggle``).
 
     Args:
         data_dir: Target directory where the dataset will be saved.
@@ -135,17 +189,7 @@ def download_kaggle_dataset(data_dir: Path) -> bool:
     Returns:
         ``True`` if the download succeeded, ``False`` otherwise.
     """
-    username = os.environ.get("KAGGLE_USERNAME")
-    key = os.environ.get("KAGGLE_KEY")
-    kaggle_json = Path.home() / ".kaggle" / "kaggle.json"
-
-    has_credentials = (username and key) or kaggle_json.exists()
-    if not has_credentials:
-        logger.info(
-            "Kaggle credentials not found. "
-            "Set KAGGLE_USERNAME + KAGGLE_KEY env vars or place ~/.kaggle/kaggle.json "
-            "to enable automatic dataset download."
-        )
+    if not _resolve_kaggle_credentials():
         return False
 
     try:
