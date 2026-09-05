@@ -11,8 +11,12 @@ O objetivo é construir um sistema de triagem automática de laudos médicos com
 ## 🔗 Links Oficiais do Projeto
 
 * **Repositório GitHub**: [brunoabreu0/tech-challenge-fase03](https://github.com/brunoabreu0/tech-challenge-fase03)
+* **API em Produção (AWS CloudFront + HTTPS)**: [https://api.triage.cloud-ip.cc](https://api.triage.cloud-ip.cc)
+* **Swagger UI (Docs)**: [https://api.triage.cloud-ip.cc/docs](https://api.triage.cloud-ip.cc/docs)
+* **Airflow Webserver (AWS)**: [https://airflow.triage.cloud-ip.cc](https://airflow.triage.cloud-ip.cc)
+* **Prometheus (AWS)**: [https://prometheus.triage.cloud-ip.cc](https://prometheus.triage.cloud-ip.cc)
+* **Grafana (AWS - admin/admin)**: [https://grafana.triage.cloud-ip.cc](https://grafana.triage.cloud-ip.cc)
 * **Vídeo de Apresentação (STAR)**: *(link a adicionar após a gravação)*
-* **API em Produção (AWS)**: *(link a adicionar após o deploy)*
 
 ---
 
