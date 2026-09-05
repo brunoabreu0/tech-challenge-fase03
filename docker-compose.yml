@@ -26,6 +26,20 @@ services:
     restart: unless-stopped
 
   # ---------------------------------------------------------------------------
+  # Simulador de Tráfego Clínico Contínuo (alimenta o Grafana automaticamente)
+  # ---------------------------------------------------------------------------
+  traffic-generator:
+    image: python:3.12-alpine
+    container_name: triage-traffic-generator
+    restart: unless-stopped
+    volumes:
+      - ./scripts/generate_traffic.py:/app/generate_traffic.py:ro
+    command: python /app/generate_traffic.py --url http://api:8000 --continuous --delay 5
+    depends_on:
+      api:
+        condition: service_healthy
+
+  # ---------------------------------------------------------------------------
   # Prometheus — coleta métricas da API
   # ---------------------------------------------------------------------------
   prometheus:
