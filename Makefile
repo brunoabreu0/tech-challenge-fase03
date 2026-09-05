@@ -7,6 +7,7 @@ RUFF = $(VENV_BIN)/ruff
 UVICORN = $(VENV_BIN)/uvicorn
 
 .PHONY: venv install setup clean lint format test run-api train export-onnx benchmark \
+        download-data \
         docker-build docker-run compose-up compose-down \
         tf-init tf-plan tf-apply tf-destroy
 
@@ -62,6 +63,15 @@ export-onnx:
 
 benchmark:
 	PYTHONPATH=src $(PYTHON) scripts/benchmark_latency.py
+
+## Download the Medical Abstracts TC Corpus from Kaggle.
+## Requires KAGGLE_USERNAME + KAGGLE_KEY in your .env (or ~/.kaggle/kaggle.json).
+## Also requires the kaggle extra: poetry install --with kaggle
+download-data:
+	PYTHONPATH=src $(PYTHON) -c \
+	  "from triage.data.loader import download_kaggle_dataset; from pathlib import Path; \
+	  ok = download_kaggle_dataset(Path('data/raw')); \
+	  print('Download', 'succeeded ✓' if ok else 'failed — check credentials and kaggle package')"
 
 # --------------------------------------------------------------------------- #
 # API                                                                          #

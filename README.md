@@ -190,18 +190,40 @@ EC2 t3.small
 
 ## 6. Dataset
 
-O projeto suporta dois modos de dados:
+O loader segue uma estratégia em **3 camadas**, na ordem:
 
-### 6.1. Dataset Real (recomendado)
-**Medical Abstracts TC Corpus** — disponível no [Kaggle](https://www.kaggle.com/datasets/chaitanyakck/medical-text).
+| Prioridade | Origem | Condição |
+|---|---|---|
+| 1 | **Disco** | `data/raw/medical_abstracts.csv` presente |
+| 2 | **Download Kaggle** (automático) | Credenciais configuradas + pacote `kaggle` instalado |
+| 3 | **Dados Sintéticos** (fallback) | Sempre disponível, sem configuração |
 
-Após download, colocar o arquivo `train.dat` em:
-```
+### 6.1. Dataset Real — Medical Abstracts TC Corpus (recomendado)
+
+**Opção A — Manual:**
+```bash
+# Baixar de: https://www.kaggle.com/datasets/chaitanyakck/medical-text
+# Colocar train.dat renomeado em:
 data/raw/medical_abstracts.csv
 ```
 
+**Opção B — Download automático em runtime:**
+```bash
+# 1. Instalar o extra kaggle
+poetry install --with kaggle
+
+# 2. Configurar credenciais (obtenha em kaggle.com/settings > API > Create New Token)
+echo "KAGGLE_USERNAME=seu_usuario" >> .env
+echo "KAGGLE_KEY=sua_chave"      >> .env
+
+# 3. Baixar (ou simplesmente rodar train.py — o download acontece automaticamente)
+make download-data
+```
+
+O sistema detecta automaticamente as credenciais (`KAGGLE_USERNAME` + `KAGGLE_KEY` no `.env`, ou `~/.kaggle/kaggle.json`) e faz o download + extração + renomeação do arquivo sem intervenção manual.
+
 ### 6.2. Dados Sintéticos (fallback automático)
-Se o dataset real não estiver disponível, o sistema gera automaticamente **3000 amostras sintéticas** balanceadas (1000 por classe). A API inicia normalmente sem necessidade de configuração extra.
+Se o dataset real não estiver disponível e as credenciais Kaggle não estiverem configuradas, o sistema gera automaticamente **3000 amostras sintéticas** balanceadas (1000 por classe). A API inicia normalmente sem nenhuma configuração extra.
 
 ---
 

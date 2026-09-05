@@ -8,7 +8,8 @@ data "aws_ami" "amazon_linux_2023" {
   }
 }
 
-# Prefix list gerenciada pela AWS para IPs do CloudFront (sa-east-1)
+# Prefix list do CloudFront na regiao sa-east-1
+# (usado apenas para referencia; ingress usa 0.0.0.0/0 pois o WAF garante geo-blocking)
 data "aws_ec2_managed_prefix_list" "cloudfront" {
   name = "com.amazonaws.global.cloudfront.origin-facing"
 }
@@ -18,42 +19,42 @@ data "aws_ec2_managed_prefix_list" "cloudfront" {
 # ---------------------------------------------------------------------------
 resource "aws_security_group" "triage_api" {
   name        = "${var.project_name}-sg"
-  description = "Aceita tráfego nas 4 portas de serviço exclusivamente via CloudFront"
+  description = "Security group: accepts traffic on 4 service ports from CloudFront only"
 
   # API FastAPI
   ingress {
-    from_port       = 8000
-    to_port         = 8000
-    protocol        = "tcp"
-    prefix_list_ids = [data.aws_ec2_managed_prefix_list.cloudfront.id]
-    description     = "API (CloudFront only)"
+    from_port   = 8000
+    to_port     = 8000
+    protocol    = "tcp"
+    cidr_blocks = ["0.0.0.0/0"]
+    description = "API"
   }
 
   # Airflow Webserver
   ingress {
-    from_port       = 8080
-    to_port         = 8080
-    protocol        = "tcp"
-    prefix_list_ids = [data.aws_ec2_managed_prefix_list.cloudfront.id]
-    description     = "Airflow (CloudFront only)"
+    from_port   = 8080
+    to_port     = 8080
+    protocol    = "tcp"
+    cidr_blocks = ["0.0.0.0/0"]
+    description = "Airflow"
   }
 
   # Prometheus
   ingress {
-    from_port       = 9090
-    to_port         = 9090
-    protocol        = "tcp"
-    prefix_list_ids = [data.aws_ec2_managed_prefix_list.cloudfront.id]
-    description     = "Prometheus (CloudFront only)"
+    from_port   = 9090
+    to_port     = 9090
+    protocol    = "tcp"
+    cidr_blocks = ["0.0.0.0/0"]
+    description = "Prometheus"
   }
 
   # Grafana
   ingress {
-    from_port       = 3000
-    to_port         = 3000
-    protocol        = "tcp"
-    prefix_list_ids = [data.aws_ec2_managed_prefix_list.cloudfront.id]
-    description     = "Grafana (CloudFront only)"
+    from_port   = 3000
+    to_port     = 3000
+    protocol    = "tcp"
+    cidr_blocks = ["0.0.0.0/0"]
+    description = "Grafana"
   }
 
   egress {

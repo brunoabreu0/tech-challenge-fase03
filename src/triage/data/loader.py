@@ -1,13 +1,21 @@
 """Dataset loading and generation utilities."""
 
 import logging
+import os
 import random
+import zipfile
 from pathlib import Path
 
 import numpy as np
 import pandas as pd
 
 logger = logging.getLogger(__name__)
+
+# ---------------------------------------------------------------------------
+# Kaggle dataset constants
+# ---------------------------------------------------------------------------
+_KAGGLE_DATASET = "chaitanyakck/medical-text"
+_KAGGLE_DATASET_URL = "https://www.kaggle.com/datasets/chaitanyakck/medical-text"
 
 # ---------------------------------------------------------------------------
 # Label mapping
@@ -112,20 +120,133 @@ def generate_synthetic_dataset(
     return df
 
 
+def download_kaggle_dataset(data_dir: Path) -> bool:
+    """Attempt to download the Medical Abstracts TC Corpus from Kaggle.
+
+    Requires either:
+    - Environment variables ``KAGGLE_USERNAME`` and ``KAGGLE_KEY``, or
+    - A valid ``~/.kaggle/kaggle.json`` credentials file.
+
+    The ``kaggle`` Python package must be installed (optional dependency).
+
+    Args:
+        data_dir: Target directory where the dataset will be saved.
+
+    Returns:
+        ``True`` if the download succeeded, ``False`` otherwise.
+    """
+    username = os.environ.get("KAGGLE_USERNAME")
+    key = os.environ.get("KAGGLE_KEY")
+    kaggle_json = Path.home() / ".kaggle" / "kaggle.json"
+
+    has_credentials = (username and key) or kaggle_json.exists()
+    if not has_credentials:
+        logger.info(
+            "Kaggle credentials not found. "
+            "Set KAGGLE_USERNAME + KAGGLE_KEY env vars or place ~/.kaggle/kaggle.json "
+            "to enable automatic dataset download."
+        )
+        return False
+
+    try:
+        import kaggle  # type: ignore[import-untyped]  # noqa: PLC0415
+    except ImportError:
+        logger.info(
+            "'kaggle' package not installed. "
+            "Run `pip install kaggle` to enable automatic download."
+        )
+        return False
+
+    try:
+        data_dir = Path(data_dir)
+        data_dir.mkdir(parents=True, exist_ok=True)
+        logger.info(
+            "Downloading Kaggle dataset '%s' to %s ...", _KAGGLE_DATASET, data_dir
+        )
+
+        kaggle.api.authenticate()
+        kaggle.api.dataset_download_files(
+            _KAGGLE_DATASET,
+            path=str(data_dir),
+            unzip=False,
+            quiet=False,
+        )
+
+        # The downloaded zip contains train.dat — extract and rename
+        zip_path = data_dir / "medical-text.zip"
+        if zip_path.exists():
+            with zipfile.ZipFile(zip_path, "r") as zf:
+                zf.extractall(data_dir)
+            zip_path.unlink()
+            logger.info("Extracted dataset to %s", data_dir)
+
+        # Rename train.dat → medical_abstracts.csv if needed
+        train_dat = data_dir / "train.dat"
+        target_csv = data_dir / "medical_abstracts.csv"
+        if train_dat.exists() and not target_csv.exists():
+            train_dat.rename(target_csv)
+            logger.info("Renamed train.dat → medical_abstracts.csv")
+
+        if target_csv.exists():
+            logger.info("Dataset ready at %s", target_csv)
+            return True
+
+        logger.warning(
+            "Download completed but expected file not found at %s", target_csv
+        )
+        return False
+
+    except Exception as exc:  # noqa: BLE001
+        logger.warning(
+            "Kaggle download failed: %s — falling back to synthetic data.", exc
+        )
+        return False
+
+
+def _load_csv(csv_path: Path) -> pd.DataFrame:
+    """Read and normalise a Medical Abstracts CSV into ``text``/``label`` columns.
+
+    Args:
+        csv_path: Path to the CSV file.
+
+    Returns:
+        DataFrame with columns ``text`` (str) and ``label`` (int).
+    """
+    df = pd.read_csv(csv_path)
+
+    # Support original Kaggle column names
+    if "abstract" in df.columns and "condition_label" in df.columns:
+        df = df.rename(columns={"abstract": "text", "condition_label": "label"})
+        # Map 5-class Kaggle labels → 3-class urgency
+        # 1=Neoplasms→urgente, 2=Digestive→atencao, 3=Nervous→urgente,
+        # 4=Cardiovascular→urgente, 5=General→normal
+        kaggle_to_triage = {1: 2, 2: 1, 3: 2, 4: 2, 5: 0}
+        df["label"] = df["label"].map(kaggle_to_triage)
+
+    df = df[["text", "label"]].dropna()
+    df["label"] = df["label"].astype(int)
+    return df
+
+
 def load_dataset(
     data_dir: Path,
     random_seed: int = 42,
 ) -> pd.DataFrame:
-    """Load the medical triage dataset from disk, falling back to synthetic data.
+    """Load the medical triage dataset using a three-tier strategy.
 
-    Looks for ``medical_abstracts.csv`` (Medical Abstracts TC Corpus from Kaggle)
-    in ``data_dir``. If not found, generates synthetic data automatically.
+    Resolution order:
+
+    1. **Disk** — looks for ``medical_abstracts.csv`` in *data_dir*.
+    2. **Kaggle download** — if credentials are available (``KAGGLE_USERNAME`` +
+       ``KAGGLE_KEY`` env vars, or ``~/.kaggle/kaggle.json``) and the ``kaggle``
+       package is installed, downloads the Medical Abstracts TC Corpus automatically.
+    3. **Synthetic fallback** — generates 3 000 balanced samples in memory.
 
     Expected CSV columns: ``text``, ``label`` (int: 0=normal, 1=atencao, 2=urgente)
     or ``condition_label``, ``abstract`` (original Kaggle format).
 
     Args:
-        data_dir: Directory containing raw dataset files.
+        data_dir: Directory containing (or where to download) raw dataset files.
         random_seed: Seed for reproducibility (used in synthetic generation).
 
     Returns:
@@ -133,27 +254,29 @@ def load_dataset(
     """
     csv_path = Path(data_dir) / "medical_abstracts.csv"
 
+    # 1. Dataset already on disk
     if csv_path.exists():
         logger.info("Loading real dataset from %s", csv_path)
-        df = pd.read_csv(csv_path)
-
-        # Support original Kaggle column names
-        if "abstract" in df.columns and "condition_label" in df.columns:
-            df = df.rename(columns={"abstract": "text", "condition_label": "label"})
-            # Map 5-class Kaggle labels → 3-class urgency
-            # 1=Neoplasms→urgente, 2=Digestive→atencao, 3=Nervous→urgente,
-            # 4=Cardiovascular→urgente, 5=General→normal
-            kaggle_to_triage = {1: 2, 2: 1, 3: 2, 4: 2, 5: 0}
-            df["label"] = df["label"].map(kaggle_to_triage)
-
-        df = df[["text", "label"]].dropna()
-        df["label"] = df["label"].astype(int)
+        df = _load_csv(csv_path)
         logger.info("Loaded %d samples from disk.", len(df))
         return df
 
+    # 2. Try Kaggle download
+    logger.info("Dataset not found locally — attempting Kaggle download...")
+    if download_kaggle_dataset(data_dir) and csv_path.exists():
+        logger.info("Loading downloaded dataset from %s", csv_path)
+        df = _load_csv(csv_path)
+        logger.info("Loaded %d samples from Kaggle.", len(df))
+        return df
+
+    # 3. Synthetic fallback
     logger.warning(
-        "Dataset not found at %s — using synthetic data. "
-        "Download from https://www.kaggle.com/datasets/chaitanyakck/medical-text",
+        "Could not obtain real dataset. Falling back to synthetic data. "
+        "To use the real dataset, either:\n"
+        "  a) Place the CSV at %s, or\n"
+        "  b) Set KAGGLE_USERNAME + KAGGLE_KEY env vars and install 'kaggle' package.\n"
+        "  Dataset URL: %s",
         csv_path,
+        _KAGGLE_DATASET_URL,
     )
     return generate_synthetic_dataset(random_seed=random_seed)

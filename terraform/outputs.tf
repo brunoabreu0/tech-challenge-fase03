@@ -9,7 +9,7 @@ output "ec2_public_ip" {
 }
 
 # ------------------------------------------------------------------------------
-# URLs HTTPS dos serviços (via CloudFront)
+# URLs HTTPS finais (via CloudFront)
 # ------------------------------------------------------------------------------
 output "api_url" {
   description = "URL da API de inferência (HTTPS via CloudFront)"
@@ -32,9 +32,35 @@ output "grafana_url" {
 }
 
 # ------------------------------------------------------------------------------
-# Route 53 — nameservers para configurar no ClouDNS
+# Domínios CloudFront — adicionar como CNAME no ClouDNS após o apply
 # ------------------------------------------------------------------------------
-output "route53_nameservers" {
-  description = "Nameservers do Route 53 — adicionar como NS no ClouDNS para 'triage.cloud-ip.cc'"
-  value       = aws_route53_zone.triage.name_servers
+output "cloudfront_api_domain" {
+  description = "Domínio CloudFront da API — criar CNAME api.triage.cloud-ip.cc → este valor"
+  value       = aws_cloudfront_distribution.api.domain_name
+}
+
+output "cloudfront_airflow_domain" {
+  description = "Domínio CloudFront do Airflow — criar CNAME airflow.triage.cloud-ip.cc → este valor"
+  value       = aws_cloudfront_distribution.airflow.domain_name
+}
+
+output "cloudfront_prometheus_domain" {
+  description = "Domínio CloudFront do Prometheus — criar CNAME prometheus.triage.cloud-ip.cc → este valor"
+  value       = aws_cloudfront_distribution.prometheus.domain_name
+}
+
+output "cloudfront_grafana_domain" {
+  description = "Domínio CloudFront do Grafana — criar CNAME grafana.triage.cloud-ip.cc → este valor"
+  value       = aws_cloudfront_distribution.grafana.domain_name
+}
+
+# ------------------------------------------------------------------------------
+# CNAME de validação ACM — já adicionado manualmente no ClouDNS
+# ------------------------------------------------------------------------------
+output "acm_validation_cname" {
+  description = "CNAME de validação do certificado ACM (já adicionado no ClouDNS)"
+  value = {
+    name  = tolist(aws_acm_certificate.triage_wildcard.domain_validation_options)[0].resource_record_name
+    value = tolist(aws_acm_certificate.triage_wildcard.domain_validation_options)[0].resource_record_value
+  }
 }

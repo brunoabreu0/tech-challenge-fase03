@@ -5,7 +5,7 @@
 resource "aws_wafv2_web_acl" "triage" {
   provider    = aws.us_east_1
   name        = "${var.project_name}-waf"
-  description = "WAF compartilhado: rate limiting + geo-bloqueio (BR+PT) para todos os serviços da Fase 3"
+  description = "Shared WAF: rate limiting and geo-blocking BR-PT for all Fase 3 services"
   scope       = "CLOUDFRONT"
 
   default_action {
