@@ -20,6 +20,7 @@ x-airflow-common: &airflow-common
     PYTHONPATH: /opt/airflow/src
   volumes:
     - /opt/triage/repo/airflow/dags:/opt/airflow/dags:ro
+    - /opt/triage/repo/airflow/webserver_config.py:/opt/airflow/webserver_config.py:ro
     - /opt/triage/repo/src:/opt/airflow/src:ro
     - /opt/triage/models:/opt/airflow/models
     - /opt/triage/data:/opt/airflow/data
@@ -89,6 +90,10 @@ services:
       GF_SECURITY_ADMIN_USER: admin
       GF_SECURITY_ADMIN_PASSWORD: admin
       GF_USERS_ALLOW_SIGN_UP: "false"
+      GF_AUTH_ANONYMOUS_ENABLED: "true"
+      GF_AUTH_ANONYMOUS_ORG_ROLE: "Viewer"
+      GF_AUTH_ANONYMOUS_ORG_NAME: "Main Org."
+      GF_AUTH_DISABLE_LOGIN_FORM: "false"
       GF_SERVER_DOMAIN: grafana.triage.cloud-ip.cc
       GF_SERVER_ROOT_URL: "https://grafana.triage.cloud-ip.cc"
       GF_LOG_LEVEL: warn

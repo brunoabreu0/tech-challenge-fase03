@@ -16,6 +16,7 @@ x-airflow-common: &airflow-common
     PYTHONPATH: /opt/airflow/src
   volumes:
     - ./airflow/dags:/opt/airflow/dags
+    - ./airflow/webserver_config.py:/opt/airflow/webserver_config.py:ro
     - ./airflow/logs:/opt/airflow/logs
     - ./src:/opt/airflow/src
     - ./models:/opt/airflow/models

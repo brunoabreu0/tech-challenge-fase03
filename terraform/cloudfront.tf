@@ -10,14 +10,10 @@ locals {
   cert_arn        = aws_acm_certificate_validation.triage_wildcard.certificate_arn
   waf_arn         = aws_wafv2_web_acl.triage.arn
 
-  # Cache behavior padrão para serviços somente-leitura (Airflow, Prometheus, Grafana)
-  # Permite GET/HEAD mas não encaminha POST/PUT (proteção readonly)
-  readonly_methods        = ["GET", "HEAD", "OPTIONS"]
-  readonly_cached_methods = ["GET", "HEAD"]
-
-  # API precisa de POST para /predict
-  api_methods        = ["DELETE", "GET", "HEAD", "OPTIONS", "PATCH", "POST", "PUT"]
-  api_cached_methods = ["GET", "HEAD"]
+  # Métodos HTTP permitidos para todas as distribuições CloudFront
+  # A autorização e perfil read-only são controlados na camada de aplicação (Airflow e Grafana)
+  all_methods    = ["DELETE", "GET", "HEAD", "OPTIONS", "PATCH", "POST", "PUT"]
+  cached_methods = ["GET", "HEAD"]
 }
 
 # ------------------------------------------------------------------------------
@@ -45,8 +41,8 @@ resource "aws_cloudfront_distribution" "api" {
   default_cache_behavior {
     target_origin_id       = local.cf_origin_id
     viewer_protocol_policy = "redirect-to-https"
-    allowed_methods        = local.api_methods
-    cached_methods         = local.api_cached_methods
+    allowed_methods        = local.all_methods
+    cached_methods         = local.cached_methods
     compress               = true
 
     forwarded_values {
@@ -104,8 +100,8 @@ resource "aws_cloudfront_distribution" "airflow" {
   default_cache_behavior {
     target_origin_id       = local.cf_origin_id
     viewer_protocol_policy = "redirect-to-https"
-    allowed_methods        = local.readonly_methods
-    cached_methods         = local.readonly_cached_methods
+    allowed_methods        = local.all_methods
+    cached_methods         = local.cached_methods
     compress               = true
 
     forwarded_values {
@@ -163,8 +159,8 @@ resource "aws_cloudfront_distribution" "prometheus" {
   default_cache_behavior {
     target_origin_id       = local.cf_origin_id
     viewer_protocol_policy = "redirect-to-https"
-    allowed_methods        = local.readonly_methods
-    cached_methods         = local.readonly_cached_methods
+    allowed_methods        = local.all_methods
+    cached_methods         = local.cached_methods
     compress               = true
 
     forwarded_values {
@@ -222,8 +218,8 @@ resource "aws_cloudfront_distribution" "grafana" {
   default_cache_behavior {
     target_origin_id       = local.cf_origin_id
     viewer_protocol_policy = "redirect-to-https"
-    allowed_methods        = local.readonly_methods
-    cached_methods         = local.readonly_cached_methods
+    allowed_methods        = local.all_methods
+    cached_methods         = local.cached_methods
     compress               = true
 
     forwarded_values {

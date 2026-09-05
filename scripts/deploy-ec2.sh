@@ -6,10 +6,21 @@
 # ==============================================================================
 set -euo pipefail
 
-INSTANCE_ID="i-0bdbb4261a0c1186a"
-REGION="sa-east-1"
+REGION="${AWS_DEFAULT_REGION:-sa-east-1}"
 REPO_URL="https://github.com/brunoabreu0/tech-challenge-fase03.git"
 DOCKERHUB_IMAGE="techchallengefase02/medical-triage-api:latest"
+
+echo "🔍 Buscando instância EC2 com a tag Name=medical-triage-nlp-api-server..."
+INSTANCE_ID="${INSTANCE_ID:-$(aws ec2 describe-instances \
+  --region "${REGION}" \
+  --filters "Name=tag:Name,Values=medical-triage-nlp-api-server" "Name=instance-state-name,Values=running" \
+  --query "Reservations[0].Instances[0].InstanceId" \
+  --output text)}"
+
+if [ -z "${INSTANCE_ID}" ] || [ "${INSTANCE_ID}" == "None" ]; then
+  echo "❌ Nenhuma instância EC2 ativa encontrada."
+  exit 1
+fi
 
 echo "🚀 Iniciando deploy na EC2 ${INSTANCE_ID}..."
 

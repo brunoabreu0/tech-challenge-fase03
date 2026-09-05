@@ -120,3 +120,80 @@ jobs:
           tags: |
             ${{ secrets.DOCKERHUB_USERNAME }}/medical-triage-api:latest
             ${{ secrets.DOCKERHUB_USERNAME }}/medical-triage-api:${{ github.sha }}
+
+  # ---------------------------------------------------------------------------
+  # Job 4: Continuous Deployment (EC2 via AWS SSM)
+  # ---------------------------------------------------------------------------
+  deploy:
+    name: Continuous Deployment (AWS SSM)
+    needs: build
+    runs-on: ubuntu-latest
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+
+    env:
+      AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
+      AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+      AWS_DEFAULT_REGION: sa-east-1
+
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      - name: Deploy via AWS Systems Manager (SSM)
+        run: |
+          echo "🔍 Localizando instância EC2 em execução com a tag Name=medical-triage-nlp-api-server..."
+          INSTANCE_ID=$(aws ec2 describe-instances \
+            --region sa-east-1 \
+            --filters "Name=tag:Name,Values=medical-triage-nlp-api-server" "Name=instance-state-name,Values=running" \
+            --query "Reservations[0].Instances[0].InstanceId" \
+            --output text)
+
+          if [ -z "$INSTANCE_ID" ] || [ "$INSTANCE_ID" == "None" ]; then
+            echo "⚠️ Nenhuma instância EC2 ativa encontrada. Pulando o deploy automático."
+            exit 0
+          fi
+
+          echo "✅ Instância EC2 encontrada: ${INSTANCE_ID}"
+          echo "🚀 Enviando comando de atualização da stack via AWS SSM..."
+
+          COMMAND_ID=$(aws ssm send-command \
+            --region sa-east-1 \
+            --instance-ids "$INSTANCE_ID" \
+            --document-name "AWS-RunShellScript" \
+            --comment "CI/CD Auto-Deploy via GitHub Actions" \
+            --parameters 'commands=[
+              "set -euxo pipefail",
+              "cd /opt/triage/repo",
+              "git pull --ff-only origin main",
+              "docker pull techchallengefase02/medical-triage-api:latest || true",
+              "docker compose -f docker-compose.prod.yml up -d --remove-orphans",
+              "docker system prune -f"
+            ]' \
+            --query "Command.CommandId" \
+            --output text)
+
+          echo "✅ Comando SSM disparado: ${COMMAND_ID}"
+          echo "⏳ Aguardando conclusão do deploy no servidor..."
+          aws ssm wait command-executed \
+            --region sa-east-1 \
+            --command-id "$COMMAND_ID" \
+            --instance-id "$INSTANCE_ID"
+
+          echo "🎉 Deploy concluído com sucesso via SSM!"
+
+      - name: Validate Production Health
+        run: |
+          echo "Verificando endpoint de saúde da API em produção..."
+          for i in {1..12}; do
+            STATUS=$(curl -s -o /dev/null -w "%{http_code}" https://api.triage.cloud-ip.cc/health || true)
+            if [ "$STATUS" == "200" ]; then
+              echo "✅ API saudável e respondendo HTTP 200!"
+              curl -s https://api.triage.cloud-ip.cc/health
+              exit 0
+            fi
+            echo "Tentativa $i: HTTP status $STATUS. Aguardando 5s..."
+            sleep 5
+          done
+          echo "❌ Falha ao validar saúde da API após deploy."
+          exit 1
+
