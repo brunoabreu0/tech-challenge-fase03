@@ -1,7 +1,33 @@
 # ==============================================================================
 # docker-compose.prod.yml — Deploy em produção (EC2)
-# Usa imagem pré-compilada do Docker Hub em vez de build local
+# Todos os serviços: API + Prometheus + Grafana + Airflow (webserver + scheduler)
+# O repositório é clonado em /opt/triage/repo no bootstrap da EC2
 # ==============================================================================
+
+x-airflow-common: &airflow-common
+  image: apache/airflow:2.10.0-python3.12
+  environment:
+    AIRFLOW__CORE__EXECUTOR: LocalExecutor
+    AIRFLOW__DATABASE__SQL_ALCHEMY_CONN: postgresql+psycopg2://airflow:airflow@airflow-db/airflow
+    AIRFLOW__CORE__FERNET_KEY: ""
+    AIRFLOW__CORE__DAGS_ARE_PAUSED_AT_CREATION: "false"
+    AIRFLOW__CORE__LOAD_EXAMPLES: "false"
+    AIRFLOW__API__AUTH_BACKENDS: "airflow.api.auth.backend.basic_auth"
+    AIRFLOW__WEBSERVER__SECRET_KEY: "fiap-9mlet-grupo17-fase03"
+    DATA_RAW_DIR: /opt/airflow/data/raw
+    DATA_PROCESSED_DIR: /opt/airflow/data/processed
+    MODEL_DIR: /opt/airflow/models
+    PYTHONPATH: /opt/airflow/src
+  volumes:
+    - /opt/triage/repo/airflow/dags:/opt/airflow/dags:ro
+    - /opt/triage/repo/src:/opt/airflow/src:ro
+    - /opt/triage/models:/opt/airflow/models
+    - /opt/triage/data:/opt/airflow/data
+    - airflow-logs:/opt/airflow/logs
+  depends_on:
+    airflow-db:
+      condition: service_healthy
+
 services:
   # ---------------------------------------------------------------------------
   # API de Triagem Médica
@@ -12,8 +38,8 @@ services:
     ports:
       - "8000:8000"
     volumes:
-      - models-data:/workspace/models
-      - raw-data:/workspace/data/raw
+      - /opt/triage/models:/workspace/models
+      - /opt/triage/data:/workspace/data
     environment:
       APP_ENV: production
       MODEL_DIR: models
@@ -27,7 +53,7 @@ services:
     restart: unless-stopped
 
   # ---------------------------------------------------------------------------
-  # Prometheus — coleta métricas da API
+  # Prometheus
   # ---------------------------------------------------------------------------
   prometheus:
     image: prom/prometheus:latest
@@ -35,7 +61,7 @@ services:
     ports:
       - "9090:9090"
     volumes:
-      - /opt/triage/monitoring/prometheus.yml:/etc/prometheus/prometheus.yml:ro
+      - /opt/triage/repo/monitoring/prometheus.yml:/etc/prometheus/prometheus.yml:ro
       - prometheus-data:/prometheus
     command:
       - "--config.file=/etc/prometheus/prometheus.yml"
@@ -48,7 +74,7 @@ services:
       - api
 
   # ---------------------------------------------------------------------------
-  # Grafana — visualização das métricas (dashboard automático)
+  # Grafana
   # ---------------------------------------------------------------------------
   grafana:
     image: grafana/grafana:latest
@@ -56,8 +82,8 @@ services:
     ports:
       - "3000:3000"
     volumes:
-      - /opt/triage/monitoring/grafana/provisioning:/etc/grafana/provisioning:ro
-      - /opt/triage/monitoring/grafana/dashboards:/var/lib/grafana/dashboards:ro
+      - /opt/triage/repo/monitoring/grafana/provisioning:/etc/grafana/provisioning:ro
+      - /opt/triage/repo/monitoring/grafana/dashboards:/var/lib/grafana/dashboards:ro
       - grafana-data:/var/lib/grafana
     environment:
       GF_SECURITY_ADMIN_USER: admin
@@ -70,8 +96,75 @@ services:
     depends_on:
       - prometheus
 
+  # ---------------------------------------------------------------------------
+  # Airflow — PostgreSQL backend
+  # ---------------------------------------------------------------------------
+  airflow-db:
+    image: postgres:15-alpine
+    container_name: triage-airflow-db
+    environment:
+      POSTGRES_USER: airflow
+      POSTGRES_PASSWORD: airflow
+      POSTGRES_DB: airflow
+    healthcheck:
+      test: ["CMD", "pg_isready", "-U", "airflow"]
+      interval: 10s
+      retries: 5
+    volumes:
+      - airflow-db-data:/var/lib/postgresql/data
+    restart: unless-stopped
+
+  # ---------------------------------------------------------------------------
+  # Airflow Init — executa uma vez para criar tabelas e usuário admin
+  # ---------------------------------------------------------------------------
+  airflow-init:
+    <<: *airflow-common
+    container_name: triage-airflow-init
+    entrypoint: /bin/bash
+    command:
+      - -c
+      - |
+        pip install --quiet scikit-learn pandas numpy joblib skl2onnx onnxruntime \
+          pydantic pydantic-settings python-dotenv &&
+        airflow db migrate &&
+        airflow users create \
+          --username admin --firstname Admin --lastname User \
+          --role Admin --email admin@example.com --password admin
+    restart: "no"
+
+  # ---------------------------------------------------------------------------
+  # Airflow Webserver — UI em :8080
+  # ---------------------------------------------------------------------------
+  airflow-webserver:
+    <<: *airflow-common
+    container_name: triage-airflow-webserver
+    command: webserver
+    ports:
+      - "8080:8080"
+    healthcheck:
+      test: ["CMD", "curl", "--fail", "http://localhost:8080/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+    restart: unless-stopped
+    depends_on:
+      airflow-init:
+        condition: service_completed_successfully
+
+  # ---------------------------------------------------------------------------
+  # Airflow Scheduler — executa as DAGs
+  # ---------------------------------------------------------------------------
+  airflow-scheduler:
+    <<: *airflow-common
+    container_name: triage-airflow-scheduler
+    command: scheduler
+    restart: unless-stopped
+    depends_on:
+      airflow-init:
+        condition: service_completed_successfully
+
 volumes:
-  models-data:
-  raw-data:
   prometheus-data:
   grafana-data:
+  airflow-db-data:
+  airflow-logs:

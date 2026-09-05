@@ -8,12 +8,12 @@ set -euo pipefail
 
 INSTANCE_ID="i-0bdbb4261a0c1186a"
 REGION="sa-east-1"
+REPO_URL="https://github.com/brunoabreu0/tech-challenge-fase03.git"
 DOCKERHUB_IMAGE="techchallengefase02/medical-triage-api:latest"
-REPO_URL="https://raw.githubusercontent.com/brunoabreu0/tech-challenge-fase03/main"
 
 echo "🚀 Iniciando deploy na EC2 ${INSTANCE_ID}..."
 
-aws ssm send-command \
+COMMAND_ID=$(aws ssm send-command \
   --region "${REGION}" \
   --instance-ids "${INSTANCE_ID}" \
   --document-name "AWS-RunShellScript" \
@@ -21,42 +21,55 @@ aws ssm send-command \
   --parameters 'commands=[
     "set -euxo pipefail",
 
-    "# 1. Garantir que Docker e Compose estão prontos",
+    "# 1. Garantir Docker em execução",
     "systemctl start docker || true",
     "sleep 2",
 
-    "# 2. Criar estrutura de diretórios",
-    "mkdir -p /opt/triage/monitoring/grafana/provisioning/datasources",
-    "mkdir -p /opt/triage/monitoring/grafana/provisioning/dashboards",
-    "mkdir -p /opt/triage/monitoring/grafana/dashboards",
+    "# 2. Instalar git se necessário",
+    "which git || yum install -y git",
 
-    "# 3. Baixar arquivos de configuração do repositório",
-    "curl -fsSL '"${REPO_URL}"'/monitoring/prometheus.yml -o /opt/triage/monitoring/prometheus.yml",
-    "curl -fsSL '"${REPO_URL}"'/monitoring/grafana/provisioning/datasources/datasource.yml -o /opt/triage/monitoring/grafana/provisioning/datasources/datasource.yml",
-    "curl -fsSL '"${REPO_URL}"'/monitoring/grafana/provisioning/dashboards/dashboard.yml -o /opt/triage/monitoring/grafana/provisioning/dashboards/dashboard.yml",
-    "curl -fsSL '"${REPO_URL}"'/monitoring/grafana/dashboards/triage_dashboard.json -o /opt/triage/monitoring/grafana/dashboards/triage_dashboard.json",
-    "curl -fsSL '"${REPO_URL}"'/docker-compose.prod.yml -o /opt/triage/docker-compose.yml",
+    "# 3. Clonar/atualizar o repositório",
+    "if [ -d /opt/triage/repo ]; then",
+    "  cd /opt/triage/repo && git pull --ff-only origin main",
+    "else",
+    "  mkdir -p /opt/triage",
+    "  git clone '"${REPO_URL}"' /opt/triage/repo",
+    "fi",
 
-    "# 4. Pull da imagem mais recente",
+    "# 4. Criar diretórios de dados e modelos",
+    "mkdir -p /opt/triage/models /opt/triage/data/raw /opt/triage/data/processed",
+
+    "# 5. Pull de todas as imagens",
     "docker pull '"${DOCKERHUB_IMAGE}"'",
+    "docker pull apache/airflow:2.10.0-python3.12",
+    "docker pull prom/prometheus:latest",
+    "docker pull grafana/grafana:latest",
+    "docker pull postgres:15-alpine",
 
-    "# 5. Parar containers antigos (se existirem)",
-    "cd /opt/triage && docker compose down --remove-orphans || true",
+    "# 6. Parar stack anterior",
+    "cd /opt/triage/repo && docker compose -f docker-compose.prod.yml down --remove-orphans || true",
 
-    "# 6. Subir a stack completa",
-    "cd /opt/triage && docker compose up -d",
+    "# 7. Subir stack completa (API + Prometheus + Grafana + Airflow)",
+    "cd /opt/triage/repo && docker compose -f docker-compose.prod.yml up -d",
 
-    "# 7. Verificar status",
-    "sleep 10",
+    "# 8. Aguardar inicialização",
+    "echo Aguardando inicializacao dos servicos...",
+    "sleep 30",
+
+    "# 9. Status final",
     "docker ps --format \"table {{.Names}}\\t{{.Status}}\\t{{.Ports}}\"",
-    "echo Deploy concluido!"
+    "echo Deploy concluido com sucesso!"
   ]' \
   --output json \
-  | python3 -c "
-import sys, json
-d = json.load(sys.stdin)
-cmd_id = d['Command']['CommandId']
-print(f'✅ Comando SSM enviado: {cmd_id}')
-print(f'   Acompanhe em: https://sa-east-1.console.aws.amazon.com/systems-manager/run-command/{cmd_id}')
-print(f'   Ou execute: aws ssm get-command-invocation --command-id {cmd_id} --instance-id ${INSTANCE_ID} --region ${REGION}')
-"
+  | python3 -c "import sys, json; print(json.load(sys.stdin)['Command']['CommandId'])")
+
+echo "✅ Comando SSM enviado: ${COMMAND_ID}"
+echo ""
+echo "Acompanhe o progresso:"
+echo "  aws ssm get-command-invocation --command-id ${COMMAND_ID} --instance-id ${INSTANCE_ID} --region ${REGION} --query Status --output text"
+echo ""
+echo "Para ver o output completo:"
+echo "  aws ssm get-command-invocation --command-id ${COMMAND_ID} --instance-id ${INSTANCE_ID} --region ${REGION}"
+echo ""
+echo "Ou acesse o console AWS:"
+echo "  https://${REGION}.console.aws.amazon.com/systems-manager/run-command/${COMMAND_ID}"
