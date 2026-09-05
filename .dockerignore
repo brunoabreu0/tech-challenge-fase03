@@ -1,0 +1,17 @@
+# Ignorar dados e modelos no Docker context
+data/
+models/
+mlruns/
+mlflow.db
+.venv/
+.git/
+__pycache__/
+*.pyc
+*.pyo
+.pytest_cache/
+htmlcov/
+.coverage
+.ruff_cache/
+.DS_Store
+airflow/logs/
+terraform/.terraform/

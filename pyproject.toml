@@ -1,0 +1,71 @@
+[project]
+name = "tech-challenge-fase03"
+version = "0.1.0"
+description = "Medical triage NLP system — automatic classification of medical reports with CI/CD, Airflow, Prometheus/Grafana monitoring and ONNX optimization"
+authors = [
+    {name = "Bruno Machado Abreu", email = "bruno@example.com"}
+]
+readme = "README.md"
+requires-python = ">=3.12,<3.13"
+dependencies = [
+    "fastapi>=0.115.0,<1.0.0",
+    "uvicorn[standard]>=0.32.0,<1.0.0",
+    "pydantic>=2.10.0,<3.0.0",
+    "pydantic-settings>=2.6.0,<3.0.0",
+    "python-dotenv>=1.0.0,<2.0.0",
+    "scikit-learn>=1.5.0,<2.0.0",
+    "joblib>=1.4.0,<2.0.0",
+    "numpy>=2.0.0,<3.0.0",
+    "pandas>=2.2.0,<3.0.0",
+    "prometheus-client>=0.21.0,<1.0.0",
+    "onnxruntime>=1.20.0,<2.0.0",
+    "skl2onnx>=1.17.0,<2.0.0",
+]
+
+[build-system]
+requires = ["poetry-core>=2.0.0,<3.0.0"]
+build-backend = "poetry.core.masonry.api"
+
+[dependency-groups]
+dev = [
+    "pytest>=8.3.0,<9.0.0",
+    "pytest-cov>=6.0.0,<7.0.0",
+    "httpx>=0.28.0,<1.0.0",
+    "ruff>=0.8.0,<1.0.0",
+    "pre-commit>=4.0.0,<5.0.0",
+]
+
+airflow = [
+    "apache-airflow>=2.10.0,<3.0.0",
+]
+
+[tool.ruff]
+line-length = 88
+target-version = "py312"
+src = ["src", "tests", "scripts"]
+
+[tool.ruff.lint]
+select = [
+    "E",
+    "F",
+    "I",
+    "B",
+    "UP",
+    "SIM",
+]
+ignore = []
+
+[tool.ruff.format]
+quote-style = "double"
+indent-style = "space"
+line-ending = "auto"
+
+[tool.pytest.ini_options]
+pythonpath = ["src"]
+testpaths = ["tests"]
+addopts = "-ra --cov=src --cov-report=term-missing"
+
+[tool.poetry]
+packages = [
+    { include = "triage", from = "src" },
+]
