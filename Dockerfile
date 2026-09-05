@@ -39,7 +39,8 @@ WORKDIR /workspace
 
 COPY --from=builder /opt/venv /opt/venv
 COPY src/ ./src/
-COPY models/ ./models/
+# Diretório de modelos criado em runtime (montado via volume em produção)
+RUN mkdir -p ./models ./data/raw ./data/processed
 
 # Expor a porta da API
 EXPOSE 8000
