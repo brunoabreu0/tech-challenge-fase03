@@ -37,7 +37,9 @@ DEFAULT_ARGS = {
 # Path config (can be overridden via Airflow Variables)
 # ---------------------------------------------------------------------------
 DATA_RAW_DIR = Path(os.getenv("DATA_RAW_DIR", "/opt/airflow/data/raw"))
-DATA_PROCESSED_DIR = Path(os.getenv("DATA_PROCESSED_DIR", "/opt/airflow/data/processed"))
+DATA_PROCESSED_DIR = Path(
+    os.getenv("DATA_PROCESSED_DIR", "/opt/airflow/data/processed")
+)
 MODEL_DIR = Path(os.getenv("MODEL_DIR", "/opt/airflow/models"))
 SRC_DIR = Path(os.getenv("SRC_DIR", "/opt/airflow/src"))
 
@@ -99,7 +101,6 @@ def task_train(**context) -> None:
     Reads ``processed/train_clean.csv``, trains the model and pushes
     the fitted classifier via XCom for the save_model task.
     """
-    import tempfile
 
     import pandas as pd
 

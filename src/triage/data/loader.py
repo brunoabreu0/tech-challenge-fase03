@@ -99,7 +99,11 @@ def generate_synthetic_dataset(
                 base = f"{base} {extra}"
             records.append({"text": base, "label": label_id})
 
-    df = pd.DataFrame(records).sample(frac=1, random_state=random_seed).reset_index(drop=True)
+    df = (
+        pd.DataFrame(records)
+        .sample(frac=1, random_state=random_seed)
+        .reset_index(drop=True)
+    )
     logger.info(
         "Synthetic dataset generated: %d samples, distribution: %s",
         len(df),

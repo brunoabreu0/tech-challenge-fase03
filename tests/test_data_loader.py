@@ -1,7 +1,6 @@
 """Tests for the dataset loader and synthetic data generation."""
 
 import pandas as pd
-import pytest
 
 from triage.data.loader import LABEL_MAP, LABEL_NAMES, generate_synthetic_dataset
 

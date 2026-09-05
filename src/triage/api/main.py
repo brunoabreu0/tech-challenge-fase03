@@ -2,9 +2,8 @@
 
 import logging
 import time
+from collections.abc import AsyncGenerator
 from contextlib import asynccontextmanager
-from pathlib import Path
-from typing import AsyncGenerator
 
 from fastapi import FastAPI, HTTPException, Request, Response
 from prometheus_client import CONTENT_TYPE_LATEST, generate_latest
@@ -91,7 +90,8 @@ async def lifespan(app: FastAPI) -> AsyncGenerator[None, None]:
 app = FastAPI(
     title="Medical Triage NLP API",
     description=(
-        "Automatic classification of medical reports (laudos médicos) into urgency levels: "
+        "Automatic classification of medical reports "
+        "(laudos médicos) into urgency levels: "
         "**normal**, **atencao** (attention), or **urgente** (urgent). "
         "\n\n"
         "Part of the FIAP Pós-Tech 9MLET — Tech Challenge Fase 3."
