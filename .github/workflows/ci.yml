@@ -163,10 +163,12 @@ jobs:
             --comment "CI/CD Auto-Deploy via GitHub Actions" \
             --parameters 'commands=[
               "set -euxo pipefail",
+              "mkdir -p /opt/triage/models /opt/triage/data/raw /opt/triage/data/processed",
+              "chmod -R 777 /opt/triage/models /opt/triage/data",
               "cd /opt/triage/repo",
               "git pull --ff-only origin main",
               "docker pull techchallengefase02/medical-triage-api:latest || true",
-              "docker compose -f docker-compose.prod.yml up -d --remove-orphans",
+              "docker compose -f docker-compose.prod.yml up -d --build --remove-orphans",
               "sleep 5",
               "curl -s -f http://localhost:8000/health",
               "docker system prune -f"

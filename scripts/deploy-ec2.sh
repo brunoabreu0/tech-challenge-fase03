@@ -47,8 +47,9 @@ COMMAND_ID=$(aws ssm send-command \
     "  git clone '"${REPO_URL}"' /opt/triage/repo",
     "fi",
 
-    "# 4. Criar diretórios de dados e modelos",
+    "# 4. Criar diretórios de dados e modelos e garantir permissões para o Airflow",
     "mkdir -p /opt/triage/models /opt/triage/data/raw /opt/triage/data/processed",
+    "chmod -R 777 /opt/triage/models /opt/triage/data",
 
     "# 5. Pull de todas as imagens",
     "docker pull '"${DOCKERHUB_IMAGE}"'",
@@ -61,7 +62,7 @@ COMMAND_ID=$(aws ssm send-command \
     "cd /opt/triage/repo && docker compose -f docker-compose.prod.yml down --remove-orphans || true",
 
     "# 7. Subir stack completa (API + Prometheus + Grafana + Airflow)",
-    "cd /opt/triage/repo && docker compose -f docker-compose.prod.yml up -d",
+    "cd /opt/triage/repo && docker compose -f docker-compose.prod.yml up -d --build",
 
     "# 8. Aguardar inicialização",
     "echo Aguardando inicializacao dos servicos...",

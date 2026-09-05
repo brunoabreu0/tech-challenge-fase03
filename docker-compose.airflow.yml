@@ -1,5 +1,8 @@
 x-airflow-common: &airflow-common
-  image: apache/airflow:2.10.0-python3.12
+  build:
+    context: .
+    dockerfile: Dockerfile.airflow
+  image: triage-airflow:2.10.0
   environment:
     AIRFLOW__CORE__EXECUTOR: LocalExecutor
     AIRFLOW__DATABASE__SQL_ALCHEMY_CONN: postgresql+psycopg2://airflow:airflow@airflow-db/airflow
@@ -51,7 +54,6 @@ services:
     command:
       - -c
       - |
-        pip install scikit-learn pandas numpy joblib skl2onnx onnxruntime pydantic pydantic-settings python-dotenv &&
         airflow db migrate
     restart: "no"
 

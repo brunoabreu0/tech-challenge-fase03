@@ -1,0 +1,17 @@
+FROM apache/airflow:2.10.0-python3.12
+
+USER airflow
+
+# Instalação das bibliotecas necessárias para as tarefas de ingestão, pré-processamento,
+# treinamento (scikit-learn / joblib) e exportação otimizada (skl2onnx / onnxruntime)
+RUN pip install --no-cache-dir \
+    "numpy>=2.0.0,<3.0.0" \
+    "pandas>=2.2.0,<3.0.0" \
+    "scipy>=1.14.0" \
+    "scikit-learn>=1.5.0,<2.0.0" \
+    "joblib>=1.4.0,<2.0.0" \
+    "skl2onnx>=1.17.0,<2.0.0" \
+    "onnxruntime>=1.20.0,<2.0.0" \
+    "pydantic>=2.10.0,<3.0.0" \
+    "pydantic-settings>=2.6.0,<3.0.0" \
+    "python-dotenv>=1.0.0,<2.0.0"
