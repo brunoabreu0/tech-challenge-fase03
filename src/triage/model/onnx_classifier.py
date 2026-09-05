@@ -50,7 +50,10 @@ class ONNXClassifier(BaseClassifier):
             List of predicted integer labels.
         """
         self._check_loaded()
-        inputs = {self._input_name: np.array(texts)}
+        arr = np.array(texts)
+        if arr.ndim == 1:
+            arr = arr.reshape(-1, 1)
+        inputs = {self._input_name: arr}
         outputs = self._session.run([self._label_output_name], inputs)
         return outputs[0].tolist()
 
@@ -64,7 +67,10 @@ class ONNXClassifier(BaseClassifier):
             List of probability vectors.
         """
         self._check_loaded()
-        inputs = {self._input_name: np.array(texts)}
+        arr = np.array(texts)
+        if arr.ndim == 1:
+            arr = arr.reshape(-1, 1)
+        inputs = {self._input_name: arr}
         outputs = self._session.run([self._proba_output_name], inputs)
         # ONNX ZipMap output is a list of dicts {label_int: prob}
         proba_dicts: list[dict] = outputs[0]
