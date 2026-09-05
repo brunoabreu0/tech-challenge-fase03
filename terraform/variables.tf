@@ -13,7 +13,7 @@ variable "project_name" {
 variable "instance_type" {
   description = "Tipo da instância EC2"
   type        = string
-  default     = "t3.small"
+  default     = "t3.medium"
 }
 
 variable "dockerhub_image" {
