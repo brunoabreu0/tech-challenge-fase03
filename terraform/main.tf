@@ -8,12 +8,11 @@ terraform {
     }
   }
 
-  # Descomente para usar S3 como backend remoto (produção)
-  # backend "s3" {
-  #   bucket = "fiappostech9mletgrupo17-fase03-terraform-state"
-  #   key    = "fase03/terraform.tfstate"
-  #   region = "sa-east-1"
-  # }
+  backend "s3" {
+    bucket = "fiappostech9mletgrupo17-fase03-terraform-state"
+    key    = "fase03/terraform.tfstate"
+    region = "sa-east-1"
+  }
 }
 
 provider "aws" {
