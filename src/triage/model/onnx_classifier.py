@@ -68,9 +68,7 @@ class ONNXClassifier(BaseClassifier):
         outputs = self._session.run([self._proba_output_name], inputs)
         # ONNX ZipMap output is a list of dicts {label_int: prob}
         proba_dicts: list[dict] = outputs[0]
-        return [
-            [d.get(k, 0.0) for k in sorted(d.keys())] for d in proba_dicts
-        ]
+        return [[d.get(k, 0.0) for k in sorted(d.keys())] for d in proba_dicts]
 
     def save(self, path: Path) -> None:
         """Not supported — ONNX models are saved via the export script.
@@ -78,9 +76,7 @@ class ONNXClassifier(BaseClassifier):
         Raises:
             NotImplementedError: Always.
         """
-        raise NotImplementedError(
-            "Use scripts/export_onnx.py to save an ONNX model."
-        )
+        raise NotImplementedError("Use scripts/export_onnx.py to save an ONNX model.")
 
     @classmethod
     def load(cls, path: Path) -> "ONNXClassifier":

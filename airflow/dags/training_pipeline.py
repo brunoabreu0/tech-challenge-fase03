@@ -117,6 +117,7 @@ def task_train(**context) -> None:
 
     # Evaluate on training set (quick sanity check)
     from sklearn.metrics import accuracy_score
+
     preds = clf.predict(texts)
     acc = accuracy_score(labels, preds)
     logger.info("Training accuracy (sanity check): %.4f", acc)
