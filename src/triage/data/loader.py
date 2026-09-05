@@ -120,6 +120,7 @@ def generate_synthetic_dataset(
     )
     return df
 
+
 def _resolve_kaggle_credentials() -> bool:
     """Resolve Kaggle credentials from available sources.
 
