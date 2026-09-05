@@ -33,7 +33,16 @@ ENV PYTHONDONTWRITEBYTECODE=1 \
     PYTHONUNBUFFERED=1 \
     VIRTUAL_ENV=/opt/venv \
     PATH="/opt/venv/bin:$PATH" \
-    PYTHONPATH=/workspace/src
+    PYTHONPATH=/workspace/src \
+    LANG=en_US.UTF-8 \
+    LC_ALL=en_US.UTF-8
+
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    curl \
+    locales \
+    && sed -i -e 's/# en_US.UTF-8 UTF-8/en_US.UTF-8 UTF-8/' /etc/locale.gen \
+    && locale-gen \
+    && rm -rf /var/lib/apt/lists/*
 
 WORKDIR /workspace
 
