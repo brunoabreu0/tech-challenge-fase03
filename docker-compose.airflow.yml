@@ -42,7 +42,7 @@ services:
       - airflow-db-data:/var/lib/postgresql/data
 
   # ---------------------------------------------------------------------------
-  # Airflow Init — cria as tabelas e o utilizador admin
+  # Airflow Init — cria as tabelas e o usuário admin
   # ---------------------------------------------------------------------------
   airflow-init:
     <<: *airflow-common

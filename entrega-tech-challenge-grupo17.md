@@ -19,11 +19,11 @@
    * *Nota:* Todo o código fonte, API FastAPI, DAG Airflow, stack de monitoramento (Prometheus + Grafana), otimização ONNX e infraestrutura Terraform encontram-se neste repositório.
 
 2. **Apresentação do Projeto (Vídeo STAR):**
-   * **Vídeo Link (YouTube):** *(a adicionar após gravação)*
+   * **Link do Vídeo (YouTube):** *(adicionar após a gravação)*
    * *Nota:* Vídeo explicativo de 5 minutos detalhando a Situação, Tarefa, Ações e Resultados do sistema de triagem médica construído.
 
 3. **Infraestrutura AWS (Terraform):**
-   * *Nota (Arquitectura):* A infraestrutura foi estruturada com Terraform (pasta `terraform/`), provisionando EC2 + CloudFront + AWS WAF com geo-blocking (BR+PT) e rate limiting, consistente com as fases anteriores.
+   * *Nota (Arquitetura):* A infraestrutura foi provisionada com Terraform (pasta `terraform/`), criando EC2 + CloudFront + AWS WAF com geo-blocking (BR+PT) e rate limiting, consistente com as fases anteriores.
 
 4. **Stack de Monitoramento:**
    * API: `http://localhost:8000/docs` — Swagger UI interativo

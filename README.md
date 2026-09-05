@@ -11,8 +11,8 @@ O objetivo é construir um sistema de triagem automática de laudos médicos com
 ## 🔗 Links Oficiais do Projeto
 
 * **Repositório GitHub**: [brunoabreu0/tech-challenge-fase03](https://github.com/brunoabreu0/tech-challenge-fase03)
-* **Vídeo de Apresentação (STAR)**: *(link a adicionar após gravação)*
-* **API em Produção (AWS)**: *(link a adicionar após deploy)*
+* **Vídeo de Apresentação (STAR)**: *(link a adicionar após a gravação)*
+* **API em Produção (AWS)**: *(link a adicionar após o deploy)*
 
 ---
 
