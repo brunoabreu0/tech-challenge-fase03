@@ -16,9 +16,9 @@ O objetivo é construir um sistema de triagem automática de laudos médicos com
 
 ---
 
-## ⚡ Quick Start — Para a Banca Avaliadora
+## ⚡ Quick Start
 
-Forma mais rápida de executar todo o sistema localmente (API + Prometheus + Grafana):
+Forma mais rápida de colocar todo o sistema em execução localmente (API + Prometheus + Grafana):
 
 ```bash
 # 1. Clonar o repositório
