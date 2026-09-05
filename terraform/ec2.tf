@@ -8,27 +8,52 @@ data "aws_ami" "amazon_linux_2023" {
   }
 }
 
+# Prefix list gerenciada pela AWS para IPs do CloudFront (sa-east-1)
+data "aws_ec2_managed_prefix_list" "cloudfront" {
+  name = "com.amazonaws.global.cloudfront.origin-facing"
+}
+
 # ---------------------------------------------------------------------------
-# Security Group
+# Security Group — aceita tráfego apenas de IPs do CloudFront
 # ---------------------------------------------------------------------------
 resource "aws_security_group" "triage_api" {
   name        = "${var.project_name}-sg"
-  description = "Security group for Medical Triage API EC2 instance"
+  description = "Aceita tráfego nas 4 portas de serviço exclusivamente via CloudFront"
 
-  # API porta
+  # API FastAPI
   ingress {
-    from_port   = 8000
-    to_port     = 8000
-    protocol    = "tcp"
-    cidr_blocks = ["0.0.0.0/0"]
+    from_port       = 8000
+    to_port         = 8000
+    protocol        = "tcp"
+    prefix_list_ids = [data.aws_ec2_managed_prefix_list.cloudfront.id]
+    description     = "API (CloudFront only)"
   }
 
-  # Grafana (acesso administrativo)
+  # Airflow Webserver
   ingress {
-    from_port   = 3000
-    to_port     = 3000
-    protocol    = "tcp"
-    cidr_blocks = ["0.0.0.0/0"]
+    from_port       = 8080
+    to_port         = 8080
+    protocol        = "tcp"
+    prefix_list_ids = [data.aws_ec2_managed_prefix_list.cloudfront.id]
+    description     = "Airflow (CloudFront only)"
+  }
+
+  # Prometheus
+  ingress {
+    from_port       = 9090
+    to_port         = 9090
+    protocol        = "tcp"
+    prefix_list_ids = [data.aws_ec2_managed_prefix_list.cloudfront.id]
+    description     = "Prometheus (CloudFront only)"
+  }
+
+  # Grafana
+  ingress {
+    from_port       = 3000
+    to_port         = 3000
+    protocol        = "tcp"
+    prefix_list_ids = [data.aws_ec2_managed_prefix_list.cloudfront.id]
+    description     = "Grafana (CloudFront only)"
   }
 
   egress {
@@ -36,6 +61,7 @@ resource "aws_security_group" "triage_api" {
     to_port     = 0
     protocol    = "-1"
     cidr_blocks = ["0.0.0.0/0"]
+    description = "Allow all outbound traffic"
   }
 
   tags = {
@@ -79,7 +105,6 @@ resource "aws_instance" "triage_api" {
   iam_instance_profile   = aws_iam_instance_profile.ec2_ssm.name
   vpc_security_group_ids = [aws_security_group.triage_api.id]
 
-  # Instalar Docker e Docker Compose, subir a stack
   user_data = <<-EOF
     #!/bin/bash
     set -euxo pipefail
@@ -97,7 +122,7 @@ resource "aws_instance" "triage_api" {
       -o /usr/local/lib/docker/cli-plugins/docker-compose
     chmod +x /usr/local/lib/docker/cli-plugins/docker-compose
 
-    # Instalar SSM Agent (Amazon Linux 2023 já vem com ele)
+    # SSM Agent (Amazon Linux 2023 já vem com ele)
     systemctl enable amazon-ssm-agent
     systemctl start amazon-ssm-agent
 
