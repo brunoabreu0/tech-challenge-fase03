@@ -16,7 +16,7 @@ O objetivo é construir um sistema de triagem automática de laudos médicos com
 * **Airflow Webserver (AWS)**: [https://airflow.triage.cloud-ip.cc](https://airflow.triage.cloud-ip.cc) *(acesso direto público somente-leitura)*
 * **Prometheus (AWS)**: [https://prometheus.triage.cloud-ip.cc](https://prometheus.triage.cloud-ip.cc)
 * **Grafana (AWS)**: [https://grafana.triage.cloud-ip.cc](https://grafana.triage.cloud-ip.cc) *(acesso direto público somente-leitura)*
-* **Vídeo de Apresentação (STAR)**: *(link a adicionar após a gravação)*
+* **Vídeo de Apresentação (STAR)**: [https://www.youtube.com/watch?v=an5FDp-8FMo](https://www.youtube.com/watch?v=an5FDp-8FMo)
 
 ---
 
@@ -412,7 +412,7 @@ Recursos provisionados:
 
 ## 16. Autores
 
-**Grupo 17 — FIAP Pós-Tech 9MLET**
+**Grupo 118 — FIAP Pós-Tech 9MLET**
 
 | Nome | RM |
 |---|---|

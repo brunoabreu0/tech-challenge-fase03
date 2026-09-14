@@ -25,7 +25,7 @@ logger = logging.getLogger(__name__)
 # Default arguments for all tasks
 # ---------------------------------------------------------------------------
 DEFAULT_ARGS = {
-    "owner": "fiap-9mlet-grupo17",
+    "owner": "fiap-9mlet-grupo118",
     "depends_on_past": False,
     "retries": 1,
     "retry_delay": timedelta(minutes=5),

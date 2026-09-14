@@ -3,7 +3,7 @@
 **Curso:** FIAP Pós Tech - Machine Learning Engineering
 **Turma:** 9MLET
 
-**Autores (Grupo 17):**
+**Autores (Grupo 118):**
 * Bruno Machado Abreu (RM372965)
 * Renan Prado Gonzalez (RM374089)
 * Davi Coene Rosa (RM371466)
@@ -28,7 +28,7 @@
    * **Grafana Dashboards:** [https://grafana.triage.cloud-ip.cc](https://grafana.triage.cloud-ip.cc) *(acesso público direto como Viewer)*
 
 3. **Apresentação do Projeto (Vídeo STAR):**
-   * **Link do Vídeo (YouTube):** *(adicionar após a gravação)*
+   * **Link do Vídeo (YouTube):** [https://www.youtube.com/watch?v=an5FDp-8FMo](https://www.youtube.com/watch?v=an5FDp-8FMo)
    * *Nota:* Vídeo explicativo de até 5 minutos no formato STAR (Situation, Task, Action, Result) demonstrando o fluxo completo de triagem médica e arquitetura MLOps.
 
 4. **Infraestrutura AWS (Terraform):**

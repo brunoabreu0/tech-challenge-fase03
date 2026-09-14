@@ -10,7 +10,7 @@ x-airflow-common: &airflow-common
     AIRFLOW__CORE__DAGS_ARE_PAUSED_AT_CREATION: "false"
     AIRFLOW__CORE__LOAD_EXAMPLES: "false"
     AIRFLOW__API__AUTH_BACKENDS: "airflow.api.auth.backend.basic_auth"
-    AIRFLOW__WEBSERVER__SECRET_KEY: "fiap-9mlet-grupo17-fase03"
+    AIRFLOW__WEBSERVER__SECRET_KEY: "fiap-9mlet-grupo118-fase03"
     # Caminhos para o código e modelos do projeto
     DATA_RAW_DIR: /opt/airflow/data/raw
     DATA_PROCESSED_DIR: /opt/airflow/data/processed
