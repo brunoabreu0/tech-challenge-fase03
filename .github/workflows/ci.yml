@@ -144,7 +144,7 @@ jobs:
           echo "🔍 Localizando instância EC2 em execução com a tag Name=medical-triage-nlp-api-server..."
           INSTANCE_ID=$(aws ec2 describe-instances \
             --region sa-east-1 \
-            --filters "Name=tag:Name,Values=medical-triage-nlp-api-server" "Name=instance-state-name,Values=running" \
+            --filters "Name=tag:Name,Values=*triage*api-server,medical-triage-fase03-api-server,medical-triage-nlp-api-server" "Name=instance-state-name,Values=running" \
             --query "Reservations[0].Instances[0].InstanceId" \
             --output text)
 
