@@ -4,6 +4,9 @@
 **Turma:** 9MLET
 
 **Autores (Grupo 118):**
+
+Obs: Devido a problemas na plataforma o projeto está sendo entregue no grupo 122 contendo apenas o aluno Bruno Machado Abreu (RM372965), os demais estão no Grupo 118
+
 * Bruno Machado Abreu (RM372965)
 * Renan Prado Gonzalez (RM374089)
 * Davi Coene Rosa (RM371466)
