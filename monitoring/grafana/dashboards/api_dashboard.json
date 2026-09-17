@@ -373,7 +373,7 @@
             "uid": "prometheus"
           },
           "editorMode": "code",
-          "expr": "((sum(rate(triage_api_prediction_duration_seconds_sum[30m])) / (sum(rate(triage_api_prediction_duration_seconds_count[30m])) > 0) * 1000) or ((sum(triage_api_prediction_duration_seconds_sum) / sum(triage_api_prediction_duration_seconds_count)) * 1000)",
+          "expr": "(sum(rate(triage_api_prediction_duration_seconds_sum[30m])) / sum(rate(triage_api_prediction_duration_seconds_count[30m])) * 1000) or (sum(triage_api_prediction_duration_seconds_sum) / sum(triage_api_prediction_duration_seconds_count) * 1000)",
           "instant": true,
           "legendFormat": "Latência Média",
           "range": false,
@@ -759,7 +759,7 @@
             "uid": "prometheus"
           },
           "editorMode": "code",
-          "expr": "histogram_quantile(0.50, sum(rate(triage_api_request_duration_seconds_bucket[30m])) by (le)) * 1000",
+          "expr": "histogram_quantile(0.50, sum(rate(triage_api_request_duration_seconds_bucket{endpoint=~\"/predict|/health|other\"}[30m])) by (le)) * 1000",
           "legendFormat": "HTTP P50 (Mediana)",
           "range": true,
           "refId": "A"
@@ -770,7 +770,7 @@
             "uid": "prometheus"
           },
           "editorMode": "code",
-          "expr": "histogram_quantile(0.95, sum(rate(triage_api_request_duration_seconds_bucket[30m])) by (le)) * 1000",
+          "expr": "histogram_quantile(0.95, sum(rate(triage_api_request_duration_seconds_bucket{endpoint=~\"/predict|/health|other\"}[30m])) by (le)) * 1000",
           "legendFormat": "HTTP P95 (95th)",
           "range": true,
           "refId": "B"
@@ -781,7 +781,7 @@
             "uid": "prometheus"
           },
           "editorMode": "code",
-          "expr": "histogram_quantile(0.99, sum(rate(triage_api_request_duration_seconds_bucket[30m])) by (le)) * 1000",
+          "expr": "histogram_quantile(0.99, sum(rate(triage_api_request_duration_seconds_bucket{endpoint=~\"/predict|/health|other\"}[30m])) by (le)) * 1000",
           "legendFormat": "HTTP P99 (Pior caso)",
           "range": true,
           "refId": "C"
