@@ -103,17 +103,26 @@ app = FastAPI(
 )
 
 
-# ---------------------------------------------------------------------------
-# Middleware — latency and request count tracking
-# ---------------------------------------------------------------------------
+# Endpoints conhecidos da aplicação para controle estrito de cardinalidade
+KNOWN_ENDPOINTS = {
+    "/predict",
+    "/health",
+    "/metrics",
+    "/docs",
+    "/redoc",
+    "/openapi.json",
+}
+
+
 @app.middleware("http")
 async def metrics_middleware(request: Request, call_next) -> Response:
-    """Record per-request latency and count metrics."""
+    """Record per-request latency and count metrics with bounded cardinality."""
     start = time.perf_counter()
     response = await call_next(request)
     duration = time.perf_counter() - start
 
-    endpoint = request.url.path
+    path = request.url.path
+    endpoint = path if path in KNOWN_ENDPOINTS else "other"
     method = request.method
     status = str(response.status_code)
 
