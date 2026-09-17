@@ -469,9 +469,10 @@ def run_batch(base_url: str, count: int, base_delay: float) -> None:
 
 def run_continuous(base_url: str, base_delay: float) -> None:
     """Executa o gerador contínuo com alternância de turnos e rajadas realistas."""
-    print(f"🔄 Gerador de tráfego contínuo iniciado em {base_url}")
+    print(f"🔄 Gerador de tráfego contínuo iniciado em {base_url}", flush=True)
     print(
-        f"⚡ Intervalo base: {base_delay}s (com jitter dinâmico e simulação de rajadas)"
+        f"⚡ Intervalo base: {base_delay}s (com jitter e rajadas dinâmicas)",
+        flush=True,
     )
 
     step = 0
@@ -484,15 +485,16 @@ def run_continuous(base_url: str, base_delay: float) -> None:
         if step % 35 == 1:
             turno = TURNOS[turno_idx % len(TURNOS)]
             turno_idx += 1
-            print(f"\n⏰ Mudança de Ciclo Hospitalar: {turno['nome']}")
-            print(f"📈 Proporções estimadas: {turno['pesos']}\n")
+            print(f"\n⏰ Mudança de Ciclo Hospitalar: {turno['nome']}", flush=True)
+            print(f"📈 Proporções estimadas: {turno['pesos']}\n", flush=True)
 
         # A cada 75 requisições: gera payload inválido para registrar HTTP 422
         if step % 75 == 0:
             status, _, lat_ms = post_prediction(base_url, "")
             print(
                 f"[{time.strftime('%X')}] #{step:05d} [PROVA 422] -> "
-                f"HTTP {status} ({lat_ms:.1f}ms)"
+                f"HTTP {status} ({lat_ms:.1f}ms)",
+                flush=True,
             )
             time.sleep(1.0)
             continue
@@ -510,7 +512,8 @@ def run_continuous(base_url: str, base_delay: float) -> None:
             print(
                 f"[{time.strftime('%X')}] #{step:05d}{tag}-> HTTP {status} "
                 f"| {label or 'erro':<8} ({lat_ms:5.1f}ms) "
-                f"| {report[:50]}..."
+                f"| {report[:50]}...",
+                flush=True,
             )
 
             if burst_size > 1 and b < burst_size - 1:
