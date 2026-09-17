@@ -182,10 +182,11 @@ jobs:
               "cd /opt/triage/repo",
               "git pull --ff-only origin main",
               "docker pull techchallengefase02/medical-triage-api:latest || true",
+              "if ! docker image inspect triage-airflow:2.10.0 >/dev/null 2>&1; then docker build -t triage-airflow:2.10.0 -f Dockerfile.airflow . ; fi",
               "docker compose -f docker-compose.prod.yml up -d --remove-orphans",
               "sleep 5",
               "curl -s -f http://localhost:8000/health",
-              "docker system prune -f"
+              "docker image prune -f"
             ]' \
             --query "Command.CommandId" \
             --output text)
@@ -195,15 +196,27 @@ jobs:
           aws ssm wait command-executed \
             --region sa-east-1 \
             --command-id "$COMMAND_ID" \
-            --instance-id "$INSTANCE_ID"
+            --instance-id "$INSTANCE_ID" || true
 
           echo "📋 Verificando log de execução e healthcheck do servidor:"
           aws ssm get-command-invocation \
             --region sa-east-1 \
             --command-id "$COMMAND_ID" \
             --instance-id "$INSTANCE_ID" \
-            --query "StandardOutputContent" \
-            --output text
+            --query "{Status: Status, ResponseCode: ResponseCode, Output: StandardOutputContent, Error: StandardErrorContent}" \
+            --output json
+
+          DEPLOY_STATUS=$(aws ssm get-command-invocation \
+            --region sa-east-1 \
+            --command-id "$COMMAND_ID" \
+            --instance-id "$INSTANCE_ID" \
+            --query "Status" \
+            --output text)
+
+          if [ "$DEPLOY_STATUS" != "Success" ]; then
+            echo "❌ O deploy remoto via AWS SSM falhou com status: $DEPLOY_STATUS"
+            exit 1
+          fi
 
           echo "🎉 Deploy concluído com sucesso via SSM!"
 
