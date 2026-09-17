@@ -1002,7 +1002,7 @@
             "uid": "prometheus"
           },
           "editorMode": "code",
-          "expr": "sum by (endpoint, method, http_status) (rate(triage_api_requests_total[5m]))",
+          "expr": "sum by (endpoint, method, http_status) (rate(triage_api_requests_total{endpoint=~\"/predict|/health|/metrics|/docs|/redoc|/openapi.json|other\"}[5m]))",
           "legendFormat": "{{method}} {{endpoint}} (HTTP {{http_status}})",
           "range": true,
           "refId": "A"
