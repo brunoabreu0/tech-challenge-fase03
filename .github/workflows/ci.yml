@@ -168,7 +168,7 @@ jobs:
               "cd /opt/triage/repo",
               "git pull --ff-only origin main",
               "docker pull techchallengefase02/medical-triage-api:latest || true",
-              "docker compose -f docker-compose.prod.yml up -d --build --remove-orphans",
+              "docker compose -f docker-compose.prod.yml up -d --remove-orphans",
               "sleep 5",
               "curl -s -f http://localhost:8000/health",
               "docker system prune -f"
